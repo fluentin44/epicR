@@ -1,0 +1,4 @@
+name: EPIC report template
+description: >
+   A template for the analysis of the output of the BMIQ pipeline to process EPIC data
+create_dir: FALSE
