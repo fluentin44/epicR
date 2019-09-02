@@ -3,26 +3,29 @@ title: "`r paste('Report for ', params$name)`"
 author: "Matt Hewitt"
 date: "`r format(Sys.time(), '%d-%m-%Y')`"
 params:
+  
+  
+  
   name:             name
   pcs:              number_of_pcs
-  
   raw_results_file: raw_results
   combat_data_file: combat_data
   pheno_data_file:  pheno_data
   corr_plot_file:   corr_plot
-  
   combat_data:  "../" 
   raw_results:  "./results/"
   pheno_data:   "./objects/"
   corr_plot:    "./pipeline_outs/"
-  
 output: 
   html_document:
     number_sections: true
-    fig_caption: yes
+    fig_caption: true
     df_print: paged
-    #toc: true
-    #toc_float: true
+    toc: true
+    toc_float: true
+    theme: flatly
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -87,6 +90,7 @@ var_raw<-read_tsv(paste0(raw_data),
          na = character()
          )
 var<-var_raw[,-1] 
+#var<-var_raw
 colnames(var)<-cols
 var <- var %>% arrange(adj.P.Val) %>% rowid_to_column("Rank")
 var$UCSC_RefGene_Name<-sub(";.*", "", var$UCSC_RefGene_Name)
@@ -94,36 +98,90 @@ var$UCSC_RefGene_Group<-sub(";.*", "", var$UCSC_RefGene_Group)
 ```
 
 <br />
-<br />
+<!-- <br /> -->
 
-# Top 50 hits
+# Lambdas
+
+```{r sums and lambdas, echo=FALSE}
+
+result_list <- tibble(
+  "analysis" = params$name,
+  "pcs" = params$pcs,
+  "samples" = nrow(pheno_data_raw),
+  "Lambda" = (estlambda(var$P.Value, method  =  "median"))$estimate,
+  "FDR<0.25" = sum(var$adj.P.Val < 0.25),
+  "FDR<0.20" = sum(var$adj.P.Val < 0.20),
+  "FDR<0.15" = sum(var$adj.P.Val < 0.15),
+  "FDR<0.10" = sum(var$adj.P.Val < 0.10),
+  "FDR<0.05" = sum(var$adj.P.Val < 0.05)
+)
+result_list
+# result_list %>%
+#   kable(
+#    booktabs = TRUE,
+#    linesep = "",
+#    align = "c",
+#    caption = " ") %>%
+#    kable_styling(
+#       bootstrap_options = c("striped", 
+#                             "hover", 
+#                             "condensed",
+#                             full_width = F,
+#                             position = "center",
+#                             fixed_thead = T)
+#    ) 
+```
+
+<br />
+<!-- <br /> -->
+
+# Top 100 array hits
 
 ```{r top 50 genes, echo=FALSE, warning=FALSE}
 var %>% 
-  mutate_at(7, funs(round(., 3))) %>% 
+  #mutate_at(7, funs(round(., 3))) %>% 
   arrange(adj.P.Val) %>% 
-  dplyr::slice(1:50) %>% 
-  mutate(adj.P.Val = cell_spec(
-    adj.P.Val,
-    color = ifelse(adj.P.Val < 0.25, "white", "black"), 
-    bold = ifelse(adj.P.Val < 0.25, T, F),
-    background = ifelse(adj.P.Val < 0.25, "green", "white"),
-  )) %>%
-  kable(
-   booktabs = TRUE,
-   linesep = "",
-   align = "c",
-   caption = " ",
-   escape = F) %>%
-   kable_styling(
-      bootstrap_options = c("striped", 
-                            "hover", 
-                            "condensed",
-                            full_width = F,
-                            position = "center",
-                            fixed_thead = T)
-   ) %>% 
-    scroll_box(width = "100%", height = "600px")
+  dplyr::slice(1:100) %>% 
+  DT::datatable(filter = 'top',
+                rownames = FALSE,
+                extensions = 'FixedColumns',
+                options = list(
+                  pageLength = 10, 
+                  dom = 'tp',
+                  scrollX = TRUE,
+                  fixedColumns = TRUE
+                  )
+                ) %>% 
+  DT::formatRound(c('logFC', 'AveExpr', 't', 'P.Value', 'adj.P.Val', 'B'), 5) %>% 
+  DT::formatStyle(columns = 1:17, `text-align` = 'center') %>% 
+  DT::formatStyle(
+    'adj.P.Val',
+    #color = DT::styleInterval(0.25, c('black', 'Black')),
+    backgroundColor = DT::styleInterval(0.25, c('#b3de69', '')),
+    fontWeight = DT::styleInterval(0.25, c('bold', ''))
+  )
+
+  # mutate(adj.P.Val = cell_spec(
+  #   adj.P.Val,
+  #   color = ifelse(adj.P.Val < 0.25, "white", "black"), 
+  #   bold = ifelse(adj.P.Val < 0.25, T, F),
+  #   background = ifelse(adj.P.Val < 0.25, "green", "white"),
+  # )) %>%
+  # kable(
+  #  booktabs = TRUE,
+  #  linesep = "",
+  #  align = "c",
+  #  caption = " ",
+  #  escape = F) %>%
+  #  kable_styling(
+  #     bootstrap_options = c("striped", 
+  #                           "hover", 
+  #                           "condensed",
+  #                           full_width = F,
+  #                           position = "center",
+  #                           fixed_thead = T)
+  #  ) %>% 
+  #   scroll_box(width = "100%", height = "600px")
 
 ```
 
@@ -132,9 +190,9 @@ var %>%
 ```
 
 <br />
-<br />
+<!-- <br /> -->
 
-# Top 100 {.tabset .tabset-fade}
+# Top 100 named hits {.tabset .tabset-fade .tabset-pills}
 
 ## Top 100 named genes
 
@@ -167,7 +225,7 @@ top100_named_genes %>%
 ```
 
 <br />
-<br />
+<!-- <br /> -->
 
 ## Top 100 cgs from named hits
 
@@ -198,7 +256,7 @@ top100_cgs %>%
 ```
 
 <br />
-<br />
+<!-- <br /> -->
 
 ## Significant named genes
 
@@ -230,7 +288,7 @@ sig_genenames %>%
 ```
 
 <br />
-<br />
+<!-- <br /> -->
 
 ## Significant cgs from named hits
 
@@ -261,40 +319,7 @@ sig_cgs %>%
     scroll_box(height = "400px")
 ```
 
-# Lambdas and qqplot {.tabset .tabset-fade}
-
-## Lambdas
-
-```{r sums and lambdas, echo=FALSE}
-
-result_list <- data.frame(
-  "Lambda" = estlambda(var$P.Value, method = "median"),
-  "FDR<0.25" = sum(var$adj.P.Val < 0.25),
-  "FDR<0.20" = sum(var$adj.P.Val < 0.20),
-  "FDR<0.15" = sum(var$adj.P.Val < 0.15),
-  "FDR<0.10" = sum(var$adj.P.Val < 0.10),
-  "FDR<0.05" = sum(var$adj.P.Val < 0.05)
-)
-row.names(result_list)<-params$pcs
-
-result_list %>%
-  kable(
-   booktabs = TRUE,
-   linesep = "",
-   align = "c",
-   caption = " ") %>%
-   kable_styling(
-      bootstrap_options = c("striped", 
-                            "hover", 
-                            "condensed",
-                            full_width = F,
-                            position = "center",
-                            fixed_thead = T)
-   ) 
-```
-
-<br />
-<br />
+# Lambdas and qqplot {.tabset .tabset-fade .tabset-pills}
 
 ## qqplot and nominal p.values
 
@@ -332,71 +357,49 @@ ggplot(var, aes(x=P.Value)) +
 ```
 
 <br />
-<br />
+<!-- <br /> -->
 
 ## Correlation plot
 
 ```{r correlation plot, echo=FALSE}
-
-#corrplot <- read.table("../../pipeline_outs/corr_plot_area.txt", sep = "\t", header=T)
-
-#corrplot <- as.data.frame(format.df(corrplot, numeric.dollar=FALSE, scientific = -4,4))
-
- corrplot %>%
-   rownames_to_column() %>%
-  mutate(
-    PC1 = cell_spec(PC1, "html", background = ifelse(PC1 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC2 = cell_spec(PC2, "html", background = ifelse(PC2 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC3 = cell_spec(PC3, "html", background = ifelse(PC3 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC4 = cell_spec(PC4, "html", background = ifelse(PC4 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC5 = cell_spec(PC5, "html", background = ifelse(PC5 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC6 = cell_spec(PC6, "html", background = ifelse(PC6 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC7 = cell_spec(PC7, "html", background = ifelse(PC7 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC8 = cell_spec(PC8, "html", background = ifelse(PC8 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC9 = cell_spec(PC9, "html", background = ifelse(PC9 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC10 = cell_spec(PC10, "html", background = ifelse(PC10 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC11 = cell_spec(PC11, "html", background = ifelse(PC11 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC12 = cell_spec(PC12, "html", background = ifelse(PC12 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC13 = cell_spec(PC13, "html", background = ifelse(PC13 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC14 = cell_spec(PC14, "html", background = ifelse(PC14 < 0.05, "#f0c2c2", "#c3f0c2")),
-    PC15 = cell_spec(PC15, "html", background = ifelse(PC15 < 0.05, "#f0c2c2", "#c3f0c2"))
-    ) %>%
-  kable(
-    booktabs = TRUE,
-    linesep = "",
-   align = c("l", rep("c", 15)),
-   caption = " ",
-   escape = F) %>%
-   kable_styling(
-      bootstrap_options = c("striped",
-                            "hover",
-                            "condensed",
-                            full_width = F,
-                            position = "center",
-                            fixed_thead = T)
-   ) 
-   # scroll_box(width = "150%", height = "600px")
-
-
+corrplot %>% 
+  rownames_to_column() %>% 
+  DT::datatable(filter = 'top',
+                rownames = FALSE,
+                extensions = 'FixedColumns',
+                options = list(
+                  pageLength = nrow(corrplot), 
+                  dom = 't',
+                  scrollX = TRUE,
+                  fixedColumns = TRUE
+                  )
+                ) %>% 
+  DT::formatSignif((colnames(corrplot)), digits = 3) %>% 
+  DT::formatStyle(columns = 2:ncol(corrplot), `text-align` = 'center') %>% 
+  DT::formatStyle((colnames(corrplot)),
+    #color = DT::styleInterval(0.25, c('black', 'Black')),
+    backgroundColor = DT::styleInterval(0.05, c('#fb9a99', '#b2df8a'))
+    #fontWeight = DT::styleInterval(0.25, c('', ''))
+  )
 
 ```
 
 <br />
-<br />
+<!-- <br /> -->
 
 ## Other plots
 
-[SVA plots](./pipeline_outs/Rplots.pdf)
+`r[SVA plots](./pipeline_outs/Rplots.pdf)`
 
-# Pie chart data {.tabset .tabset-fade}
+# Pie chart data {.tabset .tabset-fade .tabset-pills}
 
 ```{r pie chart data, include=FALSE}
 
 ## Relation to island 
 pie_rel_to_island_all <-
   var %>% 
-  group_by(Relation_to_Island) %>% 
-  tally() %>%  
+  count(Relation_to_Island) %>% 
+  arrange(desc(n)) %>%  
   write_csv(paste0(data_output,"pie_chart_data.csv"), col_names = T)
 
 pie_region_100 <-
@@ -406,17 +409,18 @@ pie_rel_to_island_100 <-
   arrange(adj.P.Val) %>%
   dplyr::slice(1:100) %>%
   dplyr::select(Relation_to_Island) %>%
-  group_by(Relation_to_Island) %>%
-  tally() %>% 
+  count(Relation_to_Island) %>%
+  arrange(desc(n)) %>% 
   #rename(Relation_to_Island_100 = Relation_to_Island) %>% 
   readr::write_csv(paste0(data_output, "pie_chart_data.csv"), col_names = T, append = T)
 
 ## RefGene group
 pie_ref_group_all <-
   var %>% 
-  group_by(UCSC_RefGene_Group) %>% 
-  tally() %>% 
+  count(UCSC_RefGene_Group) %>% 
+  arrange(desc(n)) %>% 
   write_csv(paste0(data_output, "pie_chart_data.csv"), col_names = T, append = T)
+pie_ref_group_all$UCSC_RefGene_Group<-sub("^$", "Unknown", pie_ref_group_all$UCSC_RefGene_Group)
 
 pie_region_100 <-
   var[!(is.na(var$UCSC_RefGene_Group) | var$UCSC_RefGene_Group == ""),]
@@ -425,119 +429,111 @@ pie_ref_group_100 <-
   arrange(adj.P.Val) %>%
   dplyr::slice(1:100) %>%
   dplyr::select(UCSC_RefGene_Group) %>%
-  group_by(UCSC_RefGene_Group) %>%
-  tally() %>% 
+  count(UCSC_RefGene_Group) %>% 
+  arrange(desc(n)) %>% 
   #rename(UCSC_RefGene_Group_100 = UCSC_RefGene_Group) %>% 
   readr::write_csv(paste0(data_output, "pie_chart_data.csv"), col_names = T, append = T)
+pie_ref_group_100$UCSC_RefGene_Group<-sub("^$", "Unknown", pie_ref_group_100$UCSC_RefGene_Group)
 ```
 
 <br />
-<br />
+<!-- <br /> -->
 
-## Relationship to island - all cpgs
+## Relationship to island
 
-```{r pie chart tables, echo=FALSE}
+```{r, fig.cap="Relationship to island of the top 100 most significant array hits (*left*) and all hits (right)", echo = FALSE}
+colours <- list('#b3de69','#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#fccde5')
+plotly::plot_ly() %>%
+  plotly::add_pie(data = pie_rel_to_island_100,
+                  labels = ~ Relation_to_Island,
+                  values = ~ n,
+                  type = "pie",
+                  #title = list(text = "bums",
+                  #             position = "top right",
+                  #             font = list(size = 40)),
+                  textposition = "outside",
+                  textinfo = "label+percent",
+                  outsidetextfont = list(family = "Helvetica",
+                                         size = 14),
+                  marker = list(colors = colours,
+                                line = list(color = '#FFFFFF', width = 3)),
+                  showlegend = FALSE,
+                  sort = TRUE,
+                  direction = "clockwise",
+                  domain = list(x = c(0, 0.35), y = c(0, 0.7))
+                  ) %>%
+  plotly::add_pie(data = pie_rel_to_island_all,
+                  labels = ~ Relation_to_Island,
+                  values = ~ n,
+                  type = "pie",
+                  #title = list(text = "bums",
+                  #             position = "top right",
+                  #             font = list(size = 40)),
+                  textposition = "outside",
+                  textinfo = "label+percent",
+                  outsidetextfont = list(family = "Helvetica",
+                                         size = 14),
+                  marker = list(colors = colours,
+                                line = list(color = '#FFFFFF', width = 3)),
+                  showlegend = FALSE,
+                  sort = TRUE,
+                  direction = "clockwise",
+                  domain = list(x = c(0.60, 0.95), y = c(0, 0.7))
+                  )
 
-kable(
-  pie_rel_to_island_all,
-  "html",
-  booktabs = TRUE,
-  linesep = "",
-  align = "c",
-  caption = " ",
-  escape = F
-) %>%
-  kable_styling(
-    bootstrap_options = c(
-      "striped",
-      "hover",
-      "condensed",
-      full_width = F,
-      position = "center",
-      fixed_thead = T
-    )
-  )
 ```
 
 <br />
-<br />
+<!-- <br /> -->
 
-## Relationship to island - top 100 cpgs
+## Refgene group
 
-```{r, echo=FALSE}
-pie_rel_to_island_100 %>% 
-kable(
-  booktabs = TRUE,
-  linesep = "",
-  align = "c",
-  caption = " ",
-  escape = F) %>%
-  kable_styling(
-    bootstrap_options = c(
-      "striped",
-      "hover",
-      "condensed",
-      full_width = F,
-      position = "center",
-      fixed_thead = T
-    )
-  )
+```{r, fig.cap="RefGene group of the top 100 most significant array hits (*left*) and all hits (right)", echo = FALSE}
+colours <- list('#b3de69','#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#fccde5')
+plotly::plot_ly() %>%
+  plotly::add_pie(data = pie_ref_group_100,
+                  labels = ~ UCSC_RefGene_Group,
+                  values = ~ n,
+                  type = "pie",
+                  #title = list(text = "bums",
+                  #             position = "top right",
+                  #             font = list(size = 40)),
+                  textposition = "outside",
+                  textinfo = "label+percent",
+                  outsidetextfont = list(family = "Helvetica",
+                                         size = 14),
+                  marker = list(colors = colours,
+                                line = list(color = '#FFFFFF', width = 3)),
+                  showlegend = FALSE,
+                  sort = TRUE,
+                  direction = "clockwise",
+                  domain = list(x = c(0, 0.35), y = c(0, 0.7))
+                  ) %>%
+  plotly::add_pie(data = pie_ref_group_all,
+                  labels = ~ UCSC_RefGene_Group,
+                  values = ~ n,
+                  type = "pie",
+                  #title = list(text = "bums",
+                  #             position = "top right",
+                  #             font = list(size = 40)),
+                  textposition = "outside",
+                  textinfo = "label+percent",
+                  outsidetextfont = list(family = "Helvetica",
+                                         size = 14),
+                  marker = list(colors = colours,
+                                line = list(color = '#FFFFFF', width = 3)),
+                  showlegend = FALSE,
+                  sort = TRUE,
+                  direction = "clockwise",
+                  domain = list(x = c(0.60, 0.95), y = c(0, 0.7))
+                  )
+
 ```
 
-<br />
-<br />
+<!-- <br /> -->
+<!-- <br /> -->
 
-## Refgene group - all cpgs
-
-```{r, echo=FALSE}
-pie_ref_group_all %>% 
-kable(
-  booktabs = TRUE,
-  linesep = "",
-  align = "c",
-  caption = " ",
-  escape = F) %>%
-  kable_styling(
-    bootstrap_options = c(
-      "striped",
-      "hover",
-      "condensed",
-      full_width = F,
-      position = "center",
-      fixed_thead = T
-    )
-  )
-```
-
-<br />
-<br />
-
-## Refgene group - all cpgs
-
-```{r, echo=FALSE}
-pie_ref_group_100 %>% 
-kable(
-  booktabs = TRUE,
-  linesep = "",
-  align = "c",
-  caption = " ",
-  escape = F) %>%
-  kable_styling(
-    bootstrap_options = c(
-      "striped",
-      "hover",
-      "condensed",
-      full_width = F,
-      position = "center",
-      fixed_thead = T
-    )
-  ) 
-```
-
-<br />
-<br />
-
-# missMethyl {.tabset .tabset-fade}
+# missMethyl {.tabset .tabset-pills}
 
 ```{r missMethyl, include = FALSE}
 # missMethyl ---------------------------------------------------------------------------------------------------
@@ -547,21 +543,21 @@ Sig_0.25<-var$Row.names[var$adj.P.Val<0.25]
 top100_named_genes <- var[!(is.na(var$UCSC_RefGene_Name) | var$UCSC_RefGene_Name == ""),]
 top_100_cpgs <- top100_named_genes %>% arrange(adj.P.Val) %>%  dplyr::slice(1:100) %>% pull(Row.names)
 
-# FDR<0.25
-# Sig_0.25<-as.character(Sig_0.25)
-# Universe<-as.character(Universe)
-# gst_0.25_GO<-gometh(sig.cpg=Sig_0.25,
-#                      all.cpg = Universe,
-#                      collection = "GO",
-#                      array.type = "EPIC"
-#                      )
-# colnames(gst_0.25_GO)[2]<-"Term"
-# 
-# ## Results 0.25
-# Results_0.25_GO <- topGO(gst_0.25_GO, number = 50)
-# Results_0.25_GO <- Results_0.25_GO %>%
-#    arrange(ONTOLOGY) %>%
-#    readr::write_csv(paste0(data_output, "./missMethyl_results.csv"), col_names = T)
+#FDR<0.25
+Sig_0.25<-as.character(Sig_0.25)
+Universe<-as.character(Universe)
+gst_0.25_GO<-gometh(sig.cpg=Sig_0.25,
+                     all.cpg = Universe,
+                     collection = "GO",
+                     array.type = "EPIC"
+                     )
+colnames(gst_0.25_GO)[2]<-"Term"
+
+## Results 0.25
+Results_0.25_GO <- limma::topGO(gst_0.25_GO, number = 50)
+Results_0.25_GO <- Results_0.25_GO %>%
+   arrange(ONTOLOGY) %>%
+   readr::write_csv(paste0(data_output, "./missMethyl_results.csv"), col_names = T)
 
 ## 1:100
 #top_100_cpgs<-as.character(top_100_cpgs) Tests gene ontology enrichment for
@@ -588,49 +584,46 @@ results_top100_go <-
 ## Significant hits (FDR<0.25)
 
 ```{r miss methyl tables, echo = FALSE}
-# Results_0.25_GO %>%
-# kable(
-#   booktabs = TRUE,
-#   linesep = "",
-#   align = c("c", "l", "c", "c", "c", "c"),
-#   caption = " ",
-#   escape = F
-# ) %>%
-#   kable_styling(
-#     bootstrap_options = c(
-#       "striped",
-#       "hover",
-#       "condensed",
-#       full_width = F,
-#       position = "center",
-#       fixed_thead = T
-#     )
-#   )
-
+Results_0.25_GO %>% 
+  DT::datatable(filter = 'top',
+                rownames = FALSE,
+                extensions = 'FixedColumns',
+                options = list(
+                  pageLength = 10, 
+                  dom = 'tpf',
+                  scrollX = TRUE,
+                  fixedColumns = TRUE
+                  )
+                ) %>% 
+  DT::formatStyle(columns = c("ONTOLOGY", "N", "DE", "P.DE", "FDR"), 
+                  `text-align` = 'center') %>%
+  DT::formatSignif(columns = c("P.DE", "FDR"), digits = 3) 
+  # DT::formatStyle(
+  #   'adj.P.Val',
+  #   #color = DT::styleInterval(0.25, c('black', 'Black')),
+  #   backgroundColor = DT::styleInterval(0.25, c('#b3de69', '')),
+  #   fontWeight = DT::styleInterval(0.25, c('bold', ''))
+  
 ```
 
 ## Top 100 cpgs
 
 ```{r, echo = FALSE}
-kable(
-  results_top100_go,
-  "html",
-  booktabs = TRUE,
-  linesep = "",
-  align = c("c", "l", "c", "c", "c", "c"),
-  caption = " ",
-  escape = F
-) %>%
-  kable_styling(
-    bootstrap_options = c(
-      "striped",
-      "hover",
-      "condensed",
-      full_width = F,
-      position = "center",
-      fixed_thead = T
-    )
-  ) 
+
+results_top100_go %>% 
+  DT::datatable(filter = 'top',
+                rownames = FALSE,
+                extensions = 'FixedColumns',
+                options = list(
+                  pageLength = 10, 
+                  dom = 'tpf',
+                  scrollX = TRUE,
+                  fixedColumns = TRUE
+                  )
+                ) %>% 
+  DT::formatStyle(columns = c("ONTOLOGY", "N", "DE", "P.DE", "FDR"), 
+                  `text-align` = 'center') %>%
+  DT::formatSignif(columns = c("P.DE", "FDR"), digits = 3) 
 ```
 
 <!-- # DMRcate ------------------------------------------------------------------------------------------------------ -->
