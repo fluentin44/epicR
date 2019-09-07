@@ -15,3 +15,6 @@ A table of missMrthyl results
 \description{
 Plot results from missMethyl analysis of significant array hits
 }
+\examples{
+mm_plot_0.25(sig_0.25)
+}

@@ -5,7 +5,7 @@
 #' @return A table of missMrthyl results
 #' @export
 #'
-#' @examples
+#' @examples mm_plot_0.25(sig_0.25)
 mm_plot_0.25 <- function(x) {
   if (class(x) == "data.frame") {
     x %>%
@@ -25,5 +25,7 @@ mm_plot_0.25 <- function(x) {
         `text-align` = 'center'
       ) %>%
       DT::formatSignif(columns = c("P.DE", "FDR"), digits = 3)
+  } else {
+    print("Insufficient cgs FDR<0.25 to plot missMethyl table")
   }
 }

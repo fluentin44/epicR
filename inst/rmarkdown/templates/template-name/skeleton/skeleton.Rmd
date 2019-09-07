@@ -11,10 +11,6 @@ params:
   pheno_data_file:  pheno_data
   corr_plot_file:   corr_plot
   
-  combat_data:  "../" 
-  raw_results:  "./results/"
-  pheno_data:   "./objects/"
-  corr_plot:    "./pipeline_outs/"
 output: 
   html_document:
     number_sections: true
@@ -54,10 +50,10 @@ dir.create(paste0("./reports", "/", params$name))
 
 data_output <-      paste0("./reports", "/", params$name, "/")
 
-raw_data <-         paste0(params$raw_results, params$raw_results_file)
-combat_data_raw <-  readRDS(paste0(params$combat_data, params$combat_data_file)) 
-pheno_data_raw <-   readRDS(paste0(params$pheno_data, params$pheno_data_file))         
-corrplot <-         read.table(paste0(params$corr_plot, params$corr_plot_file), 
+raw_data <-         paste0(params$raw_results_file)
+combat_data_raw <-  readRDS(paste0(params$combat_data_file)) 
+pheno_data_raw <-   readRDS(paste0(params$pheno_data_file))         
+corrplot <-         read.table(paste0(params$corr_plot_file), 
                                sep = "\t", 
                                header=T
                                )
@@ -140,7 +136,7 @@ var %>%
     )
   ) %>%
   DT::formatRound(c('logFC', 'AveExpr', 't', 'P.Value', 'adj.P.Val', 'B'), 5) %>%
-  DT::formatStyle(columns = 1:17, `text-align` = 'center') %>%
+  DT::formatStyle(columns = c(1:14, 16:17), `text-align` = 'center') %>%
   DT::formatStyle(
     'adj.P.Val',
     #color = DT::styleInterval(0.25, c('black', 'Black')),
@@ -292,7 +288,7 @@ sig_cgs %>%
 
 ## qqplot and nominal p.values
 
-```{r qqplot function, include=FALSE}
+```{r qqplot function, include=FALSE, warning=FALSE}
 
 var_ps <- var$P.Value
 
@@ -512,20 +508,7 @@ top100_named_genes <- var[!(is.na(var$UCSC_RefGene_Name) | var$UCSC_RefGene_Name
 top_100_cpgs <- top100_named_genes %>% arrange(adj.P.Val) %>%  dplyr::slice(1:100) %>% pull(Row.names)
 
 #FDR<0.25
-Sig_0.25<-as.character(Sig_0.25)
-Universe<-as.character(Universe)
-gst_0.25_GO<-gometh(sig.cpg=Sig_0.25,
-                     all.cpg = Universe,
-                     collection = "GO",
-                     array.type = "EPIC"
-                     )
-colnames(gst_0.25_GO)[2]<-"Term"
-
-## Results 0.25
-Results_0.25_GO <- limma::topGO(gst_0.25_GO, number = 50)
-Results_0.25_GO <- Results_0.25_GO %>%
-   arrange(ONTOLOGY) %>%
-   readr::write_csv(paste0(data_output, "./missMethyl_results.csv"), col_names = T)
+results_0.25_go <- epicR::mm_sig_cpgs(Sig_0.25)
 
 ## 1:100
 #top_100_cpgs<-as.character(top_100_cpgs) Tests gene ontology enrichment for
@@ -552,26 +535,7 @@ results_top100_go <-
 ## Significant hits (FDR<0.25)
 
 ```{r miss methyl tables, echo = FALSE}
-Results_0.25_GO %>% 
-  DT::datatable(filter = 'top',
-                rownames = FALSE,
-                extensions = 'FixedColumns',
-                options = list(
-                  pageLength = 10, 
-                  dom = 'tpf',
-                  scrollX = TRUE,
-                  fixedColumns = TRUE
-                  )
-                ) %>% 
-  DT::formatStyle(columns = c("ONTOLOGY", "N", "DE", "P.DE", "FDR"), 
-                  `text-align` = 'center') %>%
-  DT::formatSignif(columns = c("P.DE", "FDR"), digits = 3) 
-  # DT::formatStyle(
-  #   'adj.P.Val',
-  #   #color = DT::styleInterval(0.25, c('black', 'Black')),
-  #   backgroundColor = DT::styleInterval(0.25, c('#b3de69', '')),
-  #   fontWeight = DT::styleInterval(0.25, c('bold', ''))
-  
+epicR::mm_plot_0.25(results_0.25_go)
 ```
 
 ## Top 100 cpgs
