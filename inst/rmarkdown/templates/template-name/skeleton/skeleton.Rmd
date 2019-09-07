@@ -4,14 +4,13 @@ author: "Matt Hewitt"
 date: "`r format(Sys.time(), '%d-%m-%Y')`"
 params:
   
-  
-  
   name:             name
   pcs:              number_of_pcs
   raw_results_file: raw_results
   combat_data_file: combat_data
   pheno_data_file:  pheno_data
   corr_plot_file:   corr_plot
+  
   combat_data:  "../" 
   raw_results:  "./results/"
   pheno_data:   "./objects/"
@@ -115,74 +114,44 @@ result_list <- tibble(
   "FDR<0.10" = sum(var$adj.P.Val < 0.10),
   "FDR<0.05" = sum(var$adj.P.Val < 0.05)
 )
+
 result_list
-# result_list %>%
-#   kable(
-#    booktabs = TRUE,
-#    linesep = "",
-#    align = "c",
-#    caption = " ") %>%
-#    kable_styling(
-#       bootstrap_options = c("striped", 
-#                             "hover", 
-#                             "condensed",
-#                             full_width = F,
-#                             position = "center",
-#                             fixed_thead = T)
-#    ) 
 ```
 
 <br />
 <!-- <br /> -->
 
-# Top 100 array hits
+# Top 250 array hits
 
-```{r top 50 genes, echo=FALSE, warning=FALSE}
-var %>% 
-  #mutate_at(7, funs(round(., 3))) %>% 
-  arrange(adj.P.Val) %>% 
-  dplyr::slice(1:100) %>% 
-  DT::datatable(filter = 'top',
-                rownames = FALSE,
-                extensions = 'FixedColumns',
-                options = list(
-                  pageLength = 10, 
-                  dom = 'tp',
-                  scrollX = TRUE,
-                  fixedColumns = TRUE
-                  )
-                ) %>% 
-  DT::formatRound(c('logFC', 'AveExpr', 't', 'P.Value', 'adj.P.Val', 'B'), 5) %>% 
-  DT::formatStyle(columns = 1:17, `text-align` = 'center') %>% 
+```{r top 250 genes, echo=FALSE, warning=FALSE}
+var %>%
+  #mutate_at(7, funs(round(., 3))) %>%
+  arrange(adj.P.Val) %>%
+  dplyr::slice(1:250) %>%
+  DT::datatable(
+    filter = 'top',
+    rownames = FALSE,
+    extensions = 'FixedColumns',
+    options = list(
+      pageLength = 10,
+      dom = 'tpf',
+      scrollX = TRUE,
+      fixedColumns = TRUE
+    )
+  ) %>%
+  DT::formatRound(c('logFC', 'AveExpr', 't', 'P.Value', 'adj.P.Val', 'B'), 5) %>%
+  DT::formatStyle(columns = 1:17, `text-align` = 'center') %>%
   DT::formatStyle(
     'adj.P.Val',
     #color = DT::styleInterval(0.25, c('black', 'Black')),
     backgroundColor = DT::styleInterval(0.25, c('#b3de69', '')),
     fontWeight = DT::styleInterval(0.25, c('bold', ''))
+  ) %>%
+  DT::formatStyle(
+    'AveExpr',
+    backgroundColor = DT::styleInterval(0.80, c('', '#fbb4ae')),
+    fontWeight = DT::styleInterval(0.80, c('', 'bold'))
   )
-
-  # mutate(adj.P.Val = cell_spec(
-  #   adj.P.Val,
-  #   color = ifelse(adj.P.Val < 0.25, "white", "black"), 
-  #   bold = ifelse(adj.P.Val < 0.25, T, F),
-  #   background = ifelse(adj.P.Val < 0.25, "green", "white"),
-  # )) %>%
-  # kable(
-  #  booktabs = TRUE,
-  #  linesep = "",
-  #  align = "c",
-  #  caption = " ",
-  #  escape = F) %>%
-  #  kable_styling(
-  #     bootstrap_options = c("striped", 
-  #                           "hover", 
-  #                           "condensed",
-  #                           full_width = F,
-  #                           position = "center",
-  #                           fixed_thead = T)
-  #  ) %>% 
-  #   scroll_box(width = "100%", height = "600px")
-
 ```
 
 ```{r plotted tophits}
@@ -536,7 +505,6 @@ plotly::plot_ly() %>%
 # missMethyl {.tabset .tabset-pills}
 
 ```{r missMethyl, include = FALSE}
-# missMethyl ---------------------------------------------------------------------------------------------------
 
 Universe<-var$Row.names
 Sig_0.25<-var$Row.names[var$adj.P.Val<0.25]
