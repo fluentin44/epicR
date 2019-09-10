@@ -4,12 +4,14 @@ author: "Matt Hewitt"
 date: "`r format(Sys.time(), '%d-%m-%Y')`"
 params:
   
-  name:             name
-  pcs:              number_of_pcs
-  raw_results_file: raw_results
-  combat_data_file: combat_data
-  pheno_data_file:  pheno_data
-  corr_plot_file:   corr_plot
+  name:               name
+  pcs:                number_of_pcs
+  
+  raw_results:   raw_results
+  combat_data:   combat_data
+  pheno_nona:    pheno_nona
+  pheno_forpcs:  pheno_pcs
+  corr_plot:     corr_plot
   
 output: 
   html_document:
@@ -31,7 +33,6 @@ getwd()
 ```
 
 ```{r libraries, include=FALSE}
-library(clipr)
 library(GenABEL)
 library(ggplot2)
 library(missMethyl)
@@ -47,13 +48,13 @@ library(Hmisc)
 ```{r set-up directories, include=FALSE}
 
 dir.create(paste0("./reports", "/", params$name))
-
 data_output <-      paste0("./reports", "/", params$name, "/")
 
-raw_data <-         paste0(params$raw_results_file)
-combat_data_raw <-  readRDS(paste0(params$combat_data_file)) 
-pheno_data_raw <-   readRDS(paste0(params$pheno_data_file))         
-corrplot <-         read.table(paste0(params$corr_plot_file), 
+raw_data <-         paste0(params$raw_results)
+combat_data_raw <-  readRDS(paste0(params$combat_data)) 
+pheno_nona_raw <-   readRDS(paste0(params$pheno_nona))
+pheno_forpcs <-     readRDS(paste0(params$pheno_forpcs))
+corrplot <-         read.table(paste0(params$corr_plot), 
                                sep = "\t", 
                                header=T
                                )
@@ -95,14 +96,16 @@ var$UCSC_RefGene_Group<-sub(";.*", "", var$UCSC_RefGene_Group)
 <br />
 <!-- <br /> -->
 
-# Lambdas
+# Lambdas & covariates {.tabset .tabset-fade .tabset-pills}
+
+## Lambdas
 
 ```{r sums and lambdas, echo=FALSE}
 
 result_list <- tibble(
   "analysis" = params$name,
   "pcs" = params$pcs,
-  "samples" = nrow(pheno_data_raw),
+  "samples" = nrow(pheno_nona_raw),
   "Lambda" = (estlambda(var$P.Value, method  =  "median"))$estimate,
   "FDR<0.25" = sum(var$adj.P.Val < 0.25),
   "FDR<0.20" = sum(var$adj.P.Val < 0.20),
@@ -116,6 +119,17 @@ result_list
 
 <br />
 <!-- <br /> -->
+
+## Covariates
+
+```{r covariates, echo=FALSE}
+tibble::enframe(colnames(pheno_forpcs)) %>% 
+  slice(-1) %>% 
+  select(-"name") %>% 
+  rowid_to_column(var = "Number") %>% 
+  rename("Covariate" = "value") 
+```
+
 
 # Top 250 array hits
 
@@ -564,7 +578,7 @@ results_top100_go %>%
 
 <!-- # samplesheet <- samplesheet_raw -->
 <!-- # combat_data <- combat_data_raw -->
-<!-- # pheno_data <- pheno_data_raw -->
+<!-- # pheno_data <- pheno_nona_raw -->
 <!-- #  -->
 <!-- #  -->
 <!-- # #Change 'beta' in the next step to the name of your beta table variable -->

@@ -14,7 +14,7 @@ mm_sig_cpgs <- function(sig_hits) {
       collection = "GO",
       array.type = "EPIC"
     ) %>%
-      rename("TERM" = "Term") %>%
+      rename("Term" = "TERM") %>%
       limma::topGO(., number = 50) %>%
       arrange(ONTOLOGY) %>%
       readr::write_csv(paste0(data_output, "./missMethyl_results.csv"), col_names = T)
