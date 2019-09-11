@@ -571,39 +571,3 @@ results_top100_go %>%
                   `text-align` = 'center') %>%
   DT::formatSignif(columns = c("P.DE", "FDR"), digits = 3) 
 ```
-
-<!-- # DMRcate ------------------------------------------------------------------------------------------------------ -->
-
-<!-- ## read-in data -->
-
-<!-- # samplesheet <- samplesheet_raw -->
-<!-- # combat_data <- combat_data_raw -->
-<!-- # pheno_data <- pheno_nona_raw -->
-<!-- #  -->
-<!-- #  -->
-<!-- # #Change 'beta' in the next step to the name of your beta table variable -->
-<!-- # pheno_data<-pheno_data[!is.na(pheno_data$etotbmc), ] -->
-<!-- #  -->
-<!-- # samplenames<-as.character(pheno_data$Sample_Name) -->
-<!-- # samplenames<-as.data.frame(samplenames) -->
-<!-- # subset<-combat_data[ ,samplenames$samplenames] -->
-<!-- #  -->
-<!-- # mod <- model.matrix(~etotbmc, data=pheno_data) -->
-<!-- #  -->
-<!-- # set.seed(12345) -->
-<!-- # myAnnotation <- cpg.annotate(datatype="array",  -->
-<!-- #                              subset,  -->
-<!-- #                              analysis.type="differential",  -->
-<!-- #                              what="Beta",  -->
-<!-- #                              arraytype="EPIC",  -->
-<!-- #                              design=mod,  -->
-<!-- #                              contrasts=FALSE,  -->
-<!-- #                              coef=2,  -->
-<!-- #                              fdr=0.25 -->
-<!-- # ) -->
-<!-- #  -->
-<!-- # set.seed(12345) -->
-<!-- # dmroutput <- dmrcate(myAnnotation, lambda=1000, C=2) -->
-<!-- # results.ranges <- extractRanges(dmroutput, genome="hg19") -->
-
-
