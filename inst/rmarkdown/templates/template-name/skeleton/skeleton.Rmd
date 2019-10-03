@@ -94,7 +94,6 @@ var$UCSC_RefGene_Group<-sub(";.*", "", var$UCSC_RefGene_Group)
 ```
 
 <br />
-<!-- <br /> -->
 
 # Lambdas & covariates {.tabset .tabset-fade .tabset-pills}
 
@@ -118,7 +117,6 @@ result_list
 ```
 
 <br />
-<!-- <br /> -->
 
 ## Covariates
 
@@ -131,22 +129,40 @@ tibble::enframe(colnames(pheno_forpcs)) %>%
 ```
 
 
-# Top 250 array hits
+# Top 500 array hits
 
-```{r top 250 genes, echo=FALSE, warning=FALSE}
+```{r top 500 genes, echo=FALSE, warning=FALSE}
 var %>%
   #mutate_at(7, funs(round(., 3))) %>%
   arrange(adj.P.Val) %>%
-  dplyr::slice(1:250) %>%
+  dplyr::slice(1:500) %>%
   DT::datatable(
     filter = 'top',
     rownames = FALSE,
-    extensions = 'FixedColumns',
-    options = list(
-      pageLength = 10,
-      dom = 'tpf',
-      scrollX = TRUE,
-      fixedColumns = TRUE
+    extensions = list('FixedColumns' = NULL,
+                      'Buttons' = NULL),
+    options = list(pageLength = 10,
+                   dom = 'Bfrtip',
+                   scrollX = TRUE,
+                   fixedColumns = TRUE, 
+                   buttons = list(
+                     list(
+                       extend = 'colvisGroup',
+                       text = 'simplified',
+                       show = c(0:3,6,7,12,13,15),
+                       hide = c(4,5,8,9,10,11,14,16)
+                       ),
+                     list(
+                       extend = 'colvisGroup',
+                       text = 'show all',
+                       show = c(0:16)
+                       ),
+                     list(
+                       extend = 'colvis',
+                       text = 'see columns',
+                       collectionLayout= 'fixed two-column'
+                       )
+                     )
     )
   ) %>%
   DT::formatRound(c('logFC', 'AveExpr', 't', 'P.Value', 'adj.P.Val', 'B'), 5) %>%
@@ -165,11 +181,10 @@ var %>%
 ```
 
 ```{r plotted tophits}
-
+knitr::knit_exit()
 ```
 
 <br />
-<!-- <br /> -->
 
 # Top 100 named hits {.tabset .tabset-fade .tabset-pills}
 
