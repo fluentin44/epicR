@@ -7,14 +7,14 @@
 #'
 #' @examples
 mm_sig_cpgs <- function(sig_hits) {
-  if (length(sig_hits) > 1) {
+  if (length(sig_hits) > 2) {
     missMethyl::gometh(
       sig.cpg = sig_hits,
       all.cpg = Universe,
       collection = "GO",
       array.type = "EPIC"
     ) %>%
-      rename("Term" = "TERM") %>%
+      dplyr::rename("Term" = "TERM") %>%
       limma::topGO(., number = 50) %>%
       arrange(ONTOLOGY) %>%
       readr::write_csv(paste0(data_output, "./missMethyl_results.csv"), col_names = T)

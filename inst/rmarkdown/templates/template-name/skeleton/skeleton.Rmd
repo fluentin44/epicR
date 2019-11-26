@@ -80,14 +80,26 @@ cols<-c(
   "Regulatory_Feature_Group"
 )
 
-var_raw<-read_tsv(paste0(raw_data), 
-         col_names = F,
-         skip = 1, 
+# # For tables saved as NON_TSV
+# var_raw<-read_tsv(paste0(raw_data), 
+#          col_names = F,
+#          skip = 1, 
+#          na = character()
+#          )
+# var<-var_raw[,-1] 
+
+
+# For tables saved as TSV
+var_raw<-readr::read_tsv(paste0(raw_data), 
+         col_names = T,
          na = character()
          )
-var<-var_raw[,-1] 
-#var<-var_raw
-colnames(var)<-cols
+
+var<-var_raw
+
+# ----------------------------------------------------------
+
+#colnames(var)<-cols
 var <- var %>% arrange(adj.P.Val) %>% rowid_to_column("Rank")
 var$UCSC_RefGene_Name<-sub(";.*", "", var$UCSC_RefGene_Name)
 var$UCSC_RefGene_Group<-sub(";.*", "", var$UCSC_RefGene_Group)
@@ -185,10 +197,6 @@ var %>%
   )
 ```
 
-```{r plotted tophits}
-knitr::knit_exit()
-```
-
 <br />
 
 # Top 100 named hits {.tabset .tabset-fade .tabset-pills}
@@ -201,93 +209,101 @@ top100_named_genes <-
   named_hits %>%
   arrange(adj.P.Val) %>%
   slice(1:100) %>%
-  dplyr::select(UCSC_RefGene_Name) %>% 
-  readr::write_csv(paste0(data_output,"top100_named_genes.csv"), col_names = T)
+  dplyr::select(UCSC_RefGene_Name)
 ```
 
 ```{r top 100 named genes graph, echo=FALSE}
 top100_named_genes %>%
-  kable(
-   booktabs = TRUE,
-   linesep = "",
-   align = "c",
-   caption = " ") %>%
-   kable_styling(
-      bootstrap_options = c("striped", 
-                            "hover", 
-                            "condensed",
-                            full_width = F,
-                            position = "center",
-                            fixed_thead = T)
-   ) %>% 
-    scroll_box(height = "400px")
+  dplyr::rename("Top 100 genes" = "UCSC_RefGene_Name") %>% 
+  #mutate_at(7, funs(round(., 3))) %>%
+  DT::datatable(
+    filter = 'top',
+    rownames = FALSE,
+    extensions = list('FixedColumns' = NULL,
+                      'Buttons' = NULL),
+    options = list(pageLength = 10,
+                   dom = 'Brtip',
+                   fixedColumns = TRUE,
+                   columnDefs = list(
+                     list(
+                       className = 'dt-center', 
+                       targets = "_all")
+                   ),
+                   buttons = 'copy'
+                   )
+    )
 ```
 
 <br />
-<!-- <br /> -->
 
 ## Top 100 cgs from named hits
 
 ```{r top 100 cgs, include=FALSE}
-top100_cgs <- named_hits %>%
+top100_cgs <- 
+  named_hits %>%
   arrange(adj.P.Val) %>%
   slice(1:100) %>%
-  dplyr::select(Row.names) %>% 
-  readr::write_csv(paste0(data_output,"top100_cgs.csv"), col_names = T)
+  dplyr::select(Row.names) 
 ```
 
 ```{r top 100 cgs graph, echo=FALSE}
 top100_cgs %>%
-  kable(
-   booktabs = TRUE,
-   linesep = "",
-   align = "c",
-   caption = " ") %>%
-   kable_styling(
-      bootstrap_options = c("striped", 
-                            "hover", 
-                            "condensed",
-                            full_width = F,
-                            position = "center",
-                            fixed_thead = T)
-   ) %>% 
-    scroll_box(height = "400px")
+  dplyr::rename("Top 100 cgs" = "Row.names") %>% 
+  #mutate_at(7, funs(round(., 3))) %>%
+  DT::datatable(
+    filter = 'top',
+    rownames = FALSE,
+    extensions = list('FixedColumns' = NULL,
+                      'Buttons' = NULL),
+    options = list(pageLength = 10,
+                   dom = 'Brtip',
+                   fixedColumns = TRUE,
+                   columnDefs = list(
+                     list(
+                       className = 'dt-center', 
+                       targets = "_all")
+                   ),
+                   buttons = 'copy'
+                   )
+    )
 ```
 
 <br />
-<!-- <br /> -->
 
 ## Significant named genes
 
 ```{r top sig genenames, include=FALSE}
+named_hits <- var[!(is.na(var$UCSC_RefGene_Name) | var$UCSC_RefGene_Name == ""),]
 sig_genenames <-
-  var %>%
+  named_hits %>%
   arrange(adj.P.Val) %>%
   filter(adj.P.Val <0.25) %>%
-  dplyr::select(UCSC_RefGene_Name) %>% 
-  readr::write_csv(paste0(data_output,"sig_genenames.csv"), col_names = T)
+  dplyr::select(UCSC_RefGene_Name)
 ```
 
 ```{r top sig genenames table, echo=FALSE}
 sig_genenames %>%
-  kable(
-   booktabs = TRUE,
-   linesep = "",
-   align = "c",
-   caption = " ") %>%
-   kable_styling(
-      bootstrap_options = c("striped", 
-                            "hover", 
-                            "condensed",
-                            full_width = F,
-                            position = "center",
-                            fixed_thead = T)
-   ) %>% 
-    scroll_box(height = "400px")
+  dplyr::rename("Significant hits associated with named genes" = "UCSC_RefGene_Name") %>% 
+  #mutate_at(7, funs(round(., 3))) %>%
+  DT::datatable(
+    filter = 'top',
+    rownames = FALSE,
+    extensions = list('FixedColumns' = NULL,
+                      'Buttons' = NULL),
+    options = list(pageLength = 10,
+                   dom = 'Brtip',
+                   fixedColumns = TRUE,
+                   columnDefs = list(
+                     list(
+                       className = 'dt-center', 
+                       targets = "_all")
+                   ),
+                   buttons = 'copy'
+                   )
+    )
 ```
 
 <br />
-<!-- <br /> -->
 
 ## Significant cgs from named hits
 
@@ -296,27 +312,42 @@ sig_cgs <-
   var %>%
   arrange(adj.P.Val) %>%
   filter(adj.P.Val <0.25) %>%
-  dplyr::select(Row.names) %>% 
-  readr::write_csv(paste0(data_output,"top100_cgs.csv"), col_names = T)
+  dplyr::select(Row.names)
 ```
 
 ```{r top sig cgs graph, echo=FALSE}
 sig_cgs %>%
-  kable(
-   booktabs = TRUE,
-   linesep = "",
-   align = "c",
-   caption = " ") %>%
-   kable_styling(
-      bootstrap_options = c("striped", 
-                            "hover", 
-                            "condensed",
-                            full_width = F,
-                            position = "center",
-                            fixed_thead = T)
-   ) %>% 
-    scroll_box(height = "400px")
+  dplyr::rename("Significant cgs" = "Row.names") %>% 
+  DT::datatable(
+    filter = 'top',
+    rownames = FALSE,
+    extensions = list('FixedColumns' = NULL,
+                      'Buttons' = NULL),
+    options = list(pageLength = 10,
+                   dom = 'Brtip',
+                   fixedColumns = TRUE,
+                   columnDefs = list(
+                     list(
+                       className = 'dt-center', 
+                       targets = "_all")
+                   ),
+                   buttons = 'copy'
+                   )
+    )
 ```
+
+<br />
+
+## Universe (without duplicates)
+
+```{r, include=FALSE}
+var_univ <- var_raw[!(is.na(var_raw$UCSC_RefGene_Name) | var_raw$UCSC_RefGene_Name == ""),]
+var_univ$UCSC_RefGene_Name <- sub(";.*", "", var_univ$UCSC_RefGene_Name)
+gene_names <- unique(var_univ$UCSC_RefGene_Name)
+gene_names <- tibble::enframe(gene_names, name = NULL, value = "Universe")
+readr::write_csv(gene_names, "./universe.csv", col_names = T)
+```
+
 
 # Lambdas and qqplot {.tabset .tabset-fade .tabset-pills}
 
@@ -348,7 +379,6 @@ gg_qqplot <- function(var_ps, ci = 0.95) {
 ```
 
 ```{r qqplot and nom. p value histogram, echo=FALSE}
-
 gg_qqplot(var_ps)
 ggplot(var, aes(x=P.Value)) + 
   geom_histogram() +
@@ -356,7 +386,6 @@ ggplot(var, aes(x=P.Value)) +
 ```
 
 <br />
-<!-- <br /> -->
 
 ## Correlation plot
 
@@ -384,7 +413,6 @@ corrplot %>%
 ```
 
 <br />
-<!-- <br /> -->
 
 ## Other plots
 
@@ -398,8 +426,7 @@ corrplot %>%
 pie_rel_to_island_all <-
   var %>% 
   count(Relation_to_Island) %>% 
-  arrange(desc(n)) %>%  
-  write_csv(paste0(data_output,"pie_chart_data.csv"), col_names = T)
+  arrange(desc(n)) 
 
 pie_region_100 <-
   var[!(is.na(var$Relation_to_Island) | var$Relation_to_Island == ""),]
@@ -409,16 +436,15 @@ pie_rel_to_island_100 <-
   dplyr::slice(1:100) %>%
   dplyr::select(Relation_to_Island) %>%
   count(Relation_to_Island) %>%
-  arrange(desc(n)) %>% 
+  arrange(desc(n))
   #rename(Relation_to_Island_100 = Relation_to_Island) %>% 
-  readr::write_csv(paste0(data_output, "pie_chart_data.csv"), col_names = T, append = T)
+
 
 ## RefGene group
 pie_ref_group_all <-
   var %>% 
   count(UCSC_RefGene_Group) %>% 
-  arrange(desc(n)) %>% 
-  write_csv(paste0(data_output, "pie_chart_data.csv"), col_names = T, append = T)
+  arrange(desc(n))
 pie_ref_group_all$UCSC_RefGene_Group<-sub("^$", "Unknown", pie_ref_group_all$UCSC_RefGene_Group)
 
 pie_region_100 <-
@@ -429,14 +455,12 @@ pie_ref_group_100 <-
   dplyr::slice(1:100) %>%
   dplyr::select(UCSC_RefGene_Group) %>%
   count(UCSC_RefGene_Group) %>% 
-  arrange(desc(n)) %>% 
+  arrange(desc(n)) 
   #rename(UCSC_RefGene_Group_100 = UCSC_RefGene_Group) %>% 
-  readr::write_csv(paste0(data_output, "pie_chart_data.csv"), col_names = T, append = T)
 pie_ref_group_100$UCSC_RefGene_Group<-sub("^$", "Unknown", pie_ref_group_100$UCSC_RefGene_Group)
 ```
 
 <br />
-<!-- <br /> -->
 
 ## Relationship to island
 
@@ -483,7 +507,6 @@ plotly::plot_ly() %>%
 ```
 
 <br />
-<!-- <br /> -->
 
 ## Refgene group
 
@@ -529,8 +552,6 @@ plotly::plot_ly() %>%
 
 ```
 
-<!-- <br /> -->
-<!-- <br /> -->
 
 # missMethyl {.tabset .tabset-pills}
 
@@ -558,12 +579,10 @@ gst_top100_go<-gometh(sig.cpg=top_100_cpgs,
 colnames(gst_top100_go)[2]<-"Term"
 
 ### Results 1:100 - topGO pulls the most significant from the pack
-gst_top100_go<-
 results_top100_go <- topGO(gst_top100_go, number = 50)
 results_top100_go <- 
   results_top100_go %>% 
-  arrange(ONTOLOGY) %>% 
-  readr::write_csv(paste0(data_output, "missMethyl_results.csv"), col_names = T, append = T)
+  arrange(ONTOLOGY)
 ```
 
 ## Significant hits (FDR<0.25)
@@ -575,7 +594,6 @@ epicR::mm_plot_0.25(results_0.25_go)
 ## Top 100 cpgs
 
 ```{r, echo = FALSE}
-
 results_top100_go %>% 
   DT::datatable(filter = 'top',
                 rownames = FALSE,
