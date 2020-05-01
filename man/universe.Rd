@@ -4,7 +4,7 @@
 \alias{universe}
 \title{Get universe og genes without duplicates}
 \usage{
-universe(var)
+universe(bmiq_doc)
 }
 \arguments{
 \item{bmiq_doc}{}

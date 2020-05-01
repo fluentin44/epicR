@@ -6,7 +6,7 @@
 #' @export
 #'
 #' @examples
-universe <- function(var){
+universe <- function(bmiq_doc){
   bmiq_doc <- bmiq_doc[!(is.na(bmiq_doc$UCSC_RefGene_Name) | bmiq_doc$UCSC_RefGene_Name == ""),]
   bmiq_doc$UCSC_RefGene_Name <- sub(";.*", "", bmiq_doc$UCSC_RefGene_Name)
   gene_names <- unique(bmiq_doc$UCSC_RefGene_Name)

@@ -416,7 +416,6 @@ corrplot %>%
 
 ## Other plots
 
-`r[SVA plots](./pipeline_outs/Rplots.pdf)`
 
 # Pie chart data {.tabset .tabset-fade .tabset-pills}
 
