@@ -2,6 +2,7 @@
 
 export(bacon_short)
 export(corner)
+export(gen_report)
 export(mm_plot_0.25)
 export(mm_sig_cpgs)
 export(see_txt_corner)
