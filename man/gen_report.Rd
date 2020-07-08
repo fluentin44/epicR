@@ -2,16 +2,20 @@
 % Please edit documentation in R/gen_report.R
 \name{gen_report}
 \alias{gen_report}
-\title{Generating a report - takes a limm atable file only}
+\title{Generating a report - takes a regression output file only}
 \usage{
-gen_report(output_file_name, raw_results_path)
+gen_report(raw_results_path, report_template_filename, output_file_name)
 }
 \arguments{
-\item{raw_results_path}{}
+\item{report_template_filename}{}
 }
 \value{
 Rmarkdown report in an outs folder in reports folder
 }
 \description{
-Generating a report - takes a limm atable file only
+Generating a report - takes a regression output file only
+}
+\examples{
+
+Need to specify the raw results path, the report file *without* extenstion and output file name *without* extension
 }

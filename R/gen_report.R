@@ -1,22 +1,23 @@
-#' Generating a report - takes a limm atable file only
+#' Generating a report - takes a regression output file only
 #'
 #' @param output_file_name
 #' @param raw_results_path
+#' @param report_template_filename
 #'
 #' @return Rmarkdown report in an outs folder in reports folder
 #' @export
 #'
 #' @examples
-gen_report <- function(output_file_name, raw_results_path){
-  report_path <- "./reports/red_report.Rmd"
+#'
+#' Need to specify the raw results path, the report file *without* extenstion and output file name *without* extension
+gen_report <- function(raw_results_path, report_template_filename, output_file_name){
+  report_path <- paste0("./reports/", report_template_filename, ".Rmd")
   output_path <- "./reports/outs/"
-  #output_file <- paste0("etotarea_bone_without_d", ".html")
   rmarkdown::render(
     report_path,
     output_dir = output_path,
     output_file = paste0(output_file_name, ".html"),
     params = list(name = str_replace(output_file_name, ".html", ""),
-                  cutoff = "0%",
                   raw_results = raw_results_path
                   # corr_plot = ("pipeline_outs/corr_plot_area.txt"),
                   # pheno_nona = ("objects/p_post-subsetNAs_area.rds"),
