@@ -4,10 +4,15 @@
 \alias{gen_report}
 \title{Generating a report - takes a regression output file only}
 \usage{
-gen_report(raw_results_path, report_template_filename, output_file_name)
+gen_report(
+  raw_results_path,
+  report_template_filename,
+  output_file_name,
+  covariates
+)
 }
 \arguments{
-\item{report_template_filename}{}
+\item{covariates}{}
 }
 \value{
 Rmarkdown report in an outs folder in reports folder
