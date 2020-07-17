@@ -18,11 +18,8 @@ gen_report <- function(raw_results_path, report_template_filename, output_file_n
     output_dir = output_path,
     output_file = paste0(output_file_name, ".html"),
     params = list(name = str_replace(output_file_name, ".html", ""),
-                  raw_results = raw_results_path
-                  # corr_plot = ("pipeline_outs/corr_plot_area.txt"),
-                  # pheno_nona = ("objects/p_post-subsetNAs_area.rds"),
-                  # pheno_forpcs = ("objects/p_postsubset_forPCs_area.rds"),
-                  # combat_data = ("../combat_beta_10_universal.rds")
+                  raw_results = raw_results_path,
+                  covariates = covariates,
     )
   )
 }
