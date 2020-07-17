@@ -8,7 +8,7 @@ gen_report(
   raw_results_path,
   report_template_filename,
   output_file_name,
-  covariates
+  covariate_names
 )
 }
 \arguments{
