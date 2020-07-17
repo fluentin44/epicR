@@ -3,7 +3,7 @@
 #' @param output_file_name
 #' @param raw_results_path
 #' @param report_template_filename
-#' @param covariates
+#' @param covariate_names
 #'
 #' @return Rmarkdown report in an outs folder in reports folder
 #' @export
