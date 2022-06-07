@@ -12,7 +12,7 @@ gen_report(
 )
 }
 \arguments{
-\item{covariates}{}
+\item{covariate_names}{}
 }
 \value{
 Rmarkdown report in an outs folder in reports folder
