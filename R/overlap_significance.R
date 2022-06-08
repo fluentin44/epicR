@@ -103,9 +103,9 @@ overlap_significance <- function(table_a, table_b, follow_bacon=FALSE, top_100=N
   #
   #message("geneOverlap matrix ========")
 
-  go.obj <- newGeneOverlap(A, B, 26645)
+  go.obj <- GeneOverlap::newGeneOverlap(A, B, 26645)
   #print(go.obj)  # not tested yet.
-  go.obj <- testGeneOverlap(go.obj)
+  go.obj <- GeneOverlap::testGeneOverlap(go.obj)
 
   #matrix(c(length(intersect(A,B)), length(B)-length(intersect(A,B)), A-length(intersect(A,B)), n-B-A+length(intersect(A,B))), nrow = 2)
 
