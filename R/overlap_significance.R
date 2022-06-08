@@ -1,18 +1,21 @@
 #' Determines significance of overlap using hypergeometric probability test
 #'
-#' @param table_a
-#' @param table_b
-#' @param follow_bacon
-#' @param top_100
-#' @param fdr
+#' @param table_a Your first methylation results sheet.
+#' @param table_b Your second methylation results sheet with which you want to compare the first.
+#' @param follow_bacon Do you want to use the bacon p.value/FDR values? Needs TRUE or FALSE.
+#' @param top_100 Do you want to use the top 100 hits ordered by significance? Either true or leave blank/dont fill.
+#' @param fdr Do you want to use an FDR cutoff INSTEAD of the top 100? Specify an FDR value.
 #'
 #' @return GeneOverlap result to console
 #' @export
 #'
 #' @examples
+#' overlap_significance(table_a, table b, follow_bacon=TRUE, fdr=0.05)
 overlap_significance <- function(table_a, table_b, follow_bacon=FALSE, top_100=NULL, fdr=NULL){
 
-  if(follow_bacon & is.null(top_100)) {
+  if(is.null(top_100) & is.null(fdr)){
+    stop("Please choose either the top 100 or an fdr threshold for selecting hits to compare")
+  } else if(follow_bacon & is.null(top_100)) {
     print("bacon & is null")
   } else if (follow_bacon & !is.null(top_100)) {
     print("bacon & is not null")
@@ -33,7 +36,7 @@ overlap_significance <- function(table_a, table_b, follow_bacon=FALSE, top_100=N
   if(length(sepd_a) == length(sepd_b)){
     n <- nrow(sepd_a)
   }else{
-    stop("Not comparing analyses from same qc")
+    stop("Not comparing analyses produced from same qc")
   }
 
   if(follow_bacon & !is.null(top_100)) {

@@ -13,11 +13,22 @@ overlap_significance(
 )
 }
 \arguments{
-\item{fdr}{}
+\item{table_a}{Your first methylation results sheet.}
+
+\item{table_b}{Your second methylation results sheet with which you want to compare the first.}
+
+\item{follow_bacon}{Do you want to use the bacon p.value/FDR values? Needs TRUE or FALSE.}
+
+\item{top_100}{Do you want to use the top 100 hits ordered by significance? Either true or leave blank/dont fill.}
+
+\item{fdr}{Do you want to use an FDR cutoff INSTEAD of the top 100? Specify an FDR value.}
 }
 \value{
 GeneOverlap result to console
 }
 \description{
 Determines significance of overlap using hypergeometric probability test
+}
+\examples{
+overlap_significance(table_a, table b, follow_bacon=TRUE, fdr=0.05)
 }
