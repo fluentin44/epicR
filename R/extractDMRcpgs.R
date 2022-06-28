@@ -14,4 +14,4 @@ extractDMRcpgs <-
     cgID <-dmr_object$cpg_object@ranges
     nibs <- as.data.frame(subsetByOverlaps(cgID, dab[dmr_number]))
     return(nibs)
-  }s
+  }
